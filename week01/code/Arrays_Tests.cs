@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 public class MultiplesOfTests
 {
     [TestMethod]
+
     public void TestMultiplesOf_Whole()
     {
         double[] multiples = Arrays.MultiplesOf(7, 5);
