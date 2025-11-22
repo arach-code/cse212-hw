@@ -19,10 +19,34 @@ public static class SetsAndMaps
     /// that there were no duplicates) and therefore should not be returned.
     /// </summary>
     /// <param name="words">An array of 2-character words (lowercase, no duplicates)</param>
-    public static string[] FindPairs(string[] words)
+ public static string[] FindPairs(string[] words)
+{
+    // TODO Problem 1 - ADD YOUR CODE HERE
+    var result = new List<string>();
+    var set = new HashSet<string>(words);
+
+    foreach (var word in words)
     {
-        // TODO Problem 1 - ADD YOUR CODE HERE
-        return [];
+        // Skip same-letter words (aa)
+        if (word[0] == word[1]) 
+            continue;
+
+        string reversed = new string(new [] { word[1], word[0] });
+
+        // Must exist in the set AND avoid trying to match removed words
+        if (set.Contains(word) && set.Contains(reversed))
+        {
+            result.Add($"{word} & {reversed}");
+
+            // Remove both so we don't count duplicates
+            set.Remove(word);
+            set.Remove(reversed);
+        }
+    }
+
+
+        return result.ToArray();
+
     }
 
     /// <summary>
@@ -43,6 +67,14 @@ public static class SetsAndMaps
         {
             var fields = line.Split(",");
             // TODO Problem 2 - ADD YOUR CODE HERE
+             if (fields.Length < 4) continue; // skip invalid lines
+
+            string degree = fields[3].Trim();
+
+            if (degrees.ContainsKey(degree))
+                degrees[degree]++;
+            else
+                degrees[degree] = 1;
         }
 
         return degrees;
@@ -65,10 +97,32 @@ public static class SetsAndMaps
     /// using the [] notation.
     /// </summary>
     public static bool IsAnagram(string word1, string word2)
-    {
+    
         // TODO Problem 3 - ADD YOUR CODE HERE
-        return false;
-    }
+           {
+        // TODO Problem 3 - ADD YOUR CODE HERE
+        string w1 = new string(word1.Replace(" ", "").ToLower().ToCharArray());
+        string w2 = new string(word2.Replace(" ", "").ToLower().ToCharArray());
+
+        if (w1.Length != w2.Length) return false;
+
+        var count = new Dictionary<char, int>();
+
+        foreach (char c in w1)
+        {
+            if (!count.ContainsKey(c)) count[c] = 0;
+            count[c]++;
+        }
+
+        foreach (char c in w2)
+        {
+            if (!count.ContainsKey(c)) return false;
+            count[c]--;
+            if (count[c] < 0) return false;
+        }
+        return true;
+           }
+    
 
     /// <summary>
     /// This function will read JSON (Javascript Object Notation) data from the 
@@ -84,7 +138,77 @@ public static class SetsAndMaps
     /// https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php
     /// 
     /// </summary>
-    public static string[] EarthquakeDailySummary()
+    public class Maze
+{
+    // Sample maze dictionary: key = (x, y) coordinate, value = movements (left, right, up, down)
+    public Dictionary<(int x, int y), (bool left, bool right, bool up, bool down)> maze;
+
+    public Maze(Dictionary<(int, int), (bool, bool, bool, bool)> maze)
+    {
+        this.maze = maze;
+    }
+
+    /// <summary>
+    /// Move the player left from the given (x,y) position if allowed.
+    /// </summary>
+    public (int x, int y) MoveLeft((int x, int y) position)
+    {
+        // TODO Problem 4 - ADD YOUR CODE HERE
+        var current = maze[position];
+        if (current.left)
+        {
+            var newPos = (position.x - 1, position.y);
+            if (maze.ContainsKey(newPos)) return newPos;
+        }
+        return position;
+    }
+
+    /// <summary>
+    /// Move the player right from the given (x,y) position if allowed.
+    /// </summary>
+    public (int x, int y) MoveRight((int x, int y) position)
+    {
+        // TODO Problem 4 - ADD YOUR CODE HERE
+        var current = maze[position];
+        if (current.right)
+        {
+            var newPos = (position.x + 1, position.y);
+            if (maze.ContainsKey(newPos)) return newPos;
+        }
+        return position;
+    }
+
+    /// <summary>
+    /// Move the player up from the given (x,y) position if allowed.
+    /// </summary>
+    public (int x, int y) MoveUp((int x, int y) position)
+    {
+        // TODO Problem 4 - ADD YOUR CODE HERE
+        var current = maze[position];
+        if (current.up)
+        {
+            var newPos = (position.x, position.y - 1);
+            if (maze.ContainsKey(newPos)) return newPos;
+        }
+        return position;
+    }
+
+    /// <summary>
+    /// Move the player down from the given (x,y) position if allowed.
+    /// </summary>
+    public (int x, int y) MoveDown((int x, int y) position)
+    {
+        // TODO Problem 4 - ADD YOUR CODE HERE
+        var current = maze[position];
+        if (current.down)
+        {
+            var newPos = (position.x, position.y + 1);
+            if (maze.ContainsKey(newPos)) return newPos;
+        }
+        return position;
+    }
+}
+   public static string[] EarthquakeDailySummary()
     {
         const string uri = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
         using var client = new HttpClient();
@@ -99,8 +223,31 @@ public static class SetsAndMaps
         // TODO Problem 5:
         // 1. Add code in FeatureCollection.cs to describe the JSON using classes and properties 
         // on those classes so that the call to Deserialize above works properly.
-        // 2. Add code below to create a string out each place a earthquake has happened today and its magitude.
+        // 2. Add code below to create a string out each place a earthquake has happened today and its magnitude.
         // 3. Return an array of these string descriptions.
-        return [];
+        var result = new List<string>();
+        foreach (var feature in featureCollection.features)
+        {
+            result.Add($"{feature.properties.place} - Mag {feature.properties.mag}");
+        }
+
+        return result.ToArray();
+    }
+
+    // Classes for JSON deserialization
+    public class FeatureCollection
+    {
+        public Feature[] features { get; set; }
+    }
+
+    public class Feature
+    {
+        public Properties properties { get; set; }
+    }
+
+    public class Properties
+    {
+        public string place { get; set; }
+        public double mag { get; set; }
     }
 }
